@@ -3,7 +3,10 @@
 import re
 import logging
 
+from django.utils.translation import ugettext as _
+
 import seaserv
+from seaserv import ccnet_api
 
 from seahub.utils import is_org_context
 from seahub.profile.models import Profile
@@ -85,14 +88,23 @@ def get_group_member_info(request, group_id, email, avatar_size=AVATAR_DEFAULT_S
         logger.error(e)
         avatar_url = get_default_avatar_url()
 
+    role = _('Member')
+    group = ccnet_api.get_group(group_id)
     is_admin = seaserv.check_group_staff(group_id, email)
+    if email == group.creator_name:
+        role = _('Owner')
+    elif is_admin:
+        role = _('Admin')
+
     member_info = {
+        'group_id': group_id,
         "name": email2nickname(email),
         'email': email,
         "contact_email": Profile.objects.get_contact_email_by_user(email),
         "login_id": login_id,
         "avatar_url": request.build_absolute_uri(avatar_url),
         "is_admin": is_admin,
+        "role": role,
     }
 
     return member_info
