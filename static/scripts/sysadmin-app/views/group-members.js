@@ -15,11 +15,84 @@ define([
 
         tabNavTemplate: _.template($("#groups-tabnav-tmpl").html()),
         template: _.template($("#group-members-tmpl").html()),
+        addMemberForm: _.template($('#add-group-member-form-tmpl').html()),
 
         initialize: function() {
             this.groupMemberCollection = new GroupMemberCollection();
             this.listenTo(this.groupMemberCollection, 'add', this.addOne);
             this.listenTo(this.groupMemberCollection, 'reset', this.reset);
+        },
+
+        events: {
+            'click #js-add-group-member': 'addGroupMember'
+        },
+
+        addGroupMember: function () {
+            var $form = $(this.addMemberForm()),
+                _this = this;
+
+            $form.modal();
+            $('#simplemodal-container').css({'height':'auto', 'width':'auto'});
+
+            $('[name="email"]', $form).select2($.extend(
+                Common.contactInputOptionsForSelect2(), {
+                width: '275px',
+                containerCss: {'margin-bottom': '5px'},
+                placeholder: gettext("Search user or enter email and press Enter")
+            }));
+
+            $form.submit(function() {
+                var group_id = _this.groupMemberCollection.group_id;
+                var emails = $.trim($('[name="email"]', $form).val());
+                var $error = $('.error', $form);
+                var $submitBtn = $('[type="submit"]', $form);
+
+                if (!emails) {
+                    $error.html(gettext("Email is required.")).show();
+                    return false;
+                }
+
+                var input_emails = [];
+                var emails_list = emails.split(',');
+                for (var i = 0; i < emails_list.length; i++) {
+                    input_emails.push(emails_list[i]);
+                }
+
+                $error.hide();
+                Common.disableButton($submitBtn);
+
+                $.ajax({
+                    url: Common.getUrl({
+                        'name': 'admin-group-members',
+                        'group_id': group_id
+                    }),
+                    type: 'POST',
+                    dataType: 'json',
+                    beforeSend: Common.prepareCSRFToken,
+                    traditional: true,
+                    data: {'email': input_emails},
+                    success: function(data) {
+                        if (data.success.length > 0) {
+                            $(data.success).each(function(index, item) {
+                                var new_item = new GroupMemberView({model: item});
+                                $tableBody.before(new_item.el);
+                            });
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown){
+                        var err_msg;
+                        if (jqXHR.responseText) {
+                            err_msg = jqXHR.responseJSON.error_msg;
+                        } else {
+                            err_msg = gettext('Please check the network.');
+                        }
+                        $error.html(err_msg).show();
+                        Common.enableButton($submitBtn);
+                    }
+                });
+                return false;
+            });
+            return false;
         },
 
         render: function() {
@@ -87,6 +160,7 @@ define([
             } else {
                 this.$emptyTip.show();
             }
+            this.$('.path-bar').append(this.groupMemberCollection.group_name);
         },
 
         addOne: function(member) {

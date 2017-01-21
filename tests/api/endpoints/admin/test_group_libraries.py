@@ -24,8 +24,8 @@ class GroupLibrariesTest(BaseTestCase):
         resp = self.client.get(url)
 
         json_resp = json.loads(resp.content)
-        assert json_resp[0]['repo_id'] == self.repo_id
-        assert json_resp[0]['group_id'] == self.group_id
+        assert json_resp['libraries'][0]['repo_id'] == self.repo_id
+        assert json_resp['group_id'] == self.group_id
 
     def test_can_not_get_if_not_admin(self):
         self.login_as(self.user)

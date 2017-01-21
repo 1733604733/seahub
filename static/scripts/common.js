@@ -290,6 +290,16 @@ define([
             }
         },
 
+        getLibIconTitle: function(is_encrypted, is_readonly) {
+            if (is_encrypted) {
+                return gettext("Encrypted library");
+            } else if (is_readonly) {
+                return gettext("Read-Only library");
+            } else {
+                return gettext("Read-Write library");
+            }
+        },
+
         isHiDPI: function() {
             var pixelRatio = window.devicePixelRatio ? window.devicePixelRatio : 1;
             if (pixelRatio > 1) {

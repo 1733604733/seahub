@@ -87,6 +87,8 @@ define([
             } else {
                 this.$emptyTip.show();
             }
+
+            this.$('.path-bar').append(this.groupRepoCollection.group_name);
         },
 
         addOne: function(library) {

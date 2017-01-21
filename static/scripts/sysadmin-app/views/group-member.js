@@ -15,11 +15,55 @@ define([
         template: _.template($('#group-member-item-tmpl').html()),
 
         events: {
+            'click .role-edit-icon': 'showEdit',
+            'change .role-edit': 'editRole',
             'click .member-delete-btn': 'deleteGroupMember'
         },
 
         initialize: function() {
             HLItemView.prototype.initialize.call(this);
+            this.listenTo(this.model, 'change', this.render);
+        },
+
+        showEdit: function() {
+            this.$('.cur-role, .role-edit-icon').hide();
+            this.$('.role-edit').show();
+        },
+
+        editRole: function() {
+            var _this = this;
+
+            // '0': member, '1': admin
+            var val = this.$('[name="role"]').val();
+            var is_admin = val == 1 ? true : false;
+            $.ajax({
+                url: Common.getUrl({
+                    'name': 'admin-group-member',
+                    'group_id': _this.model.get('group_id'),
+                    'email': _this.model.get('email')
+                }),
+                type: 'put',
+                dataType: 'json',
+                beforeSend: Common.prepareCSRFToken,
+                data: {
+                    'is_admin': is_admin
+                },
+                success: function(data) {
+                    _this.model.set({
+                        'is_admin': data['is_admin'],
+                        'role': data['role']
+                    });
+                },
+                error: function(xhr) {
+                    var err_msg;
+                    if (xhr.responseText) {
+                        err_msg = $.parseJSON(xhr.responseText).error_msg;
+                    } else {
+                        err_msg = gettext("Failed. Please check the network.");
+                    }
+                    _this.$errorContainer.html(err_msg).show();
+                }
+            });
         },
 
         deleteGroupMember: function() {
@@ -32,14 +76,15 @@ define([
                     url: Common.getUrl({
                         'name': 'admin-group-member',
                         'group_id': _this.model.get('group_id'),
-                        'email': email,
+                        'email': email
                     }),
                     type: 'DELETE',
                     beforeSend: Common.prepareCSRFToken,
                     dataType: 'json',
                     success: function() {
                         _this.$el.remove();
-                        Common.feedback(gettext("Success"), 'success');
+                        var msg = gettext("Successfully deleted member {placeholder}").replace('{placeholder}', email);
+                        Common.feedback(msg, 'success');
                     },
                     error: function(xhr, textStatus, errorThrown) {
                         Common.ajaxErrorHandler(xhr, textStatus, errorThrown);

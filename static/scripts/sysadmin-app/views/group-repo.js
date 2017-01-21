@@ -15,14 +15,14 @@ define([
         template: _.template($('#group-library-item-tmpl').html()),
 
         events: {
-            'click .repo-delete-btn': 'deleteGroupLibrary'
+            'click .repo-unshare-btn': 'unshareGroupLibrary'
         },
 
         initialize: function() {
             HLItemView.prototype.initialize.call(this);
         },
 
-        deleteGroupLibrary: function() {
+        unshareGroupLibrary: function() {
             var _this = this;
             var repo_name = this.model.get('name');
             var popupTitle = gettext("Unshare Library");
@@ -39,7 +39,8 @@ define([
                     dataType: 'json',
                     success: function() {
                         _this.$el.remove();
-                        Common.feedback(gettext("Success"), 'success');
+                        var msg = gettext("Successfully unshared library {placeholder}").replace('{placeholder}', repo_name);
+                        Common.feedback(msg, 'success');
                     },
                     error: function(xhr, textStatus, errorThrown) {
                         Common.ajaxErrorHandler(xhr, textStatus, errorThrown);
@@ -61,6 +62,8 @@ define([
             data['icon_url'] = icon_url;
             data['icon_title'] = this.model.getIconTitle();
             data['formatted_size'] = Common.fileSizeFormat(data['size'], 1),
+            data['enable_sys_admin_view_repo'] = app.pageOptions.enable_sys_admin_view_repo;
+            data['is_pro'] = app.pageOptions.is_pro;
             this.$el.html(this.template(data));
 
             return this;

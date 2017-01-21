@@ -26,6 +26,7 @@ def get_group_repo_info(repo):
     result['shared_by'] = repo.user
     result['permission'] = repo.permission
     result['group_id'] = repo.group_id
+    result['encrypted'] = repo.encrypted
 
     return result
 
@@ -60,7 +61,13 @@ class AdminGroupLibraries(APIView):
             repo_info = get_group_repo_info(repo)
             group_repos_info.append(repo_info)
 
-        return Response(group_repos_info)
+        group_libraries = {
+            'group_id': group_id,
+            'group_name': group.group_name,
+            'libraries': group_repos_info
+        }
+
+        return Response(group_libraries)
 
 
 class AdminGroupLibrary(APIView):

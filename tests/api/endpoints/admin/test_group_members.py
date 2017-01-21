@@ -22,14 +22,35 @@ class GroupMembersTest(BaseTestCase):
         resp = self.client.get(url)
 
         json_resp = json.loads(resp.content)
-        assert json_resp[0]['email'] == self.user_name
-        assert json_resp[0]['group_id'] == self.group_id
+        assert json_resp['members'][0]['email'] == self.user_name
+        assert json_resp['group_id'] == self.group_id
 
     def test_can_not_get_if_not_admin(self):
         self.login_as(self.user)
         url = reverse('api-v2.1-admin-group-members',
                 args=[self.group_id])
         resp = self.client.get(url)
+        self.assertEqual(403, resp.status_code)
+
+    def test_can_add(self):
+        self.login_as(self.admin)
+        url = reverse('api-v2.1-admin-group-members',
+                args=[self.group_id])
+
+        data = {'email': self.admin_name}
+        resp = self.client.post(url, data)
+
+        json_resp = json.loads(resp.content)
+        assert json_resp['group_id'] == self.group_id
+        assert json_resp['email'] == self.admin_name
+
+    def test_can_not_add_if_not_admin(self):
+        self.login_as(self.user)
+        url = reverse('api-v2.1-admin-group-members',
+                args=[self.group_id])
+
+        data = {'email': self.admin_name}
+        resp = self.client.post(url, data)
         self.assertEqual(403, resp.status_code)
 
     def test_can_delete_group_member(self):

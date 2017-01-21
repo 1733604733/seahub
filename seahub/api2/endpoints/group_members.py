@@ -169,13 +169,12 @@ class GroupMember(APIView):
 
             # set/unset a specific group member as admin
             if is_admin.lower() == 'true':
-                seaserv.ccnet_threaded_rpc.group_set_admin(group_id, email)
+                ccnet_api.group_set_admin(group_id, email)
             elif is_admin.lower() == 'false':
-                seaserv.ccnet_threaded_rpc.group_unset_admin(group_id, email)
+                ccnet_api.group_unset_admin(group_id, email)
             else:
                 error_msg = 'is_admin invalid.'
                 return api_error(status.HTTP_400_BAD_REQUEST, error_msg)
-
         except SearpcError as e:
             logger.error(e)
             error_msg = 'Internal Server Error'
