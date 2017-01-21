@@ -548,6 +548,7 @@ define([
                                 "user_email": item.user_info.name,
                                 "user_name": item.user_info.nickname,
                                 "permission": item.permission,
+                                "show_folder_path": false,
                                 'for_user': true
                             }
                         });
@@ -605,6 +606,7 @@ define([
                                 "group_id": item.group_info.id,
                                 "group_name": item.group_info.name,
                                 "permission": item.permission,
+                                "show_folder_path": false,
                                 'for_user': false
                             }
                         });
